@@ -1,0 +1,26 @@
+{
+  "name": "@camera.ui/rust-decoder-linux-x64-gnu",
+  "version": "0.0.0",
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "main": "rust-decoder.linux-x64-gnu.node",
+  "files": [
+    "rust-decoder.linux-x64-gnu.node"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cameraui/rust-decoder.git",
+    "directory": "npm/linux-x64-gnu"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">= 10"
+  },
+  "libc": [
+    "glibc"
+  ]
+}
