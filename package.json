@@ -51,7 +51,7 @@
     "sharp": "^0.35.3",
     "typescript": "5.9.3",
     "typescript-eslint": "^8.65.0",
-    "updates": "^17.20.2"
+    "updates": "^18.0.0"
   },
   "bugs": {
     "url": "https://github.com/cameraui/rust-decoder/issues"
