@@ -7,8 +7,8 @@ version = "0.0.0"
 crate-type = ["cdylib"]
 
 [dependencies]
-napi = { version = "3.14.0", default-features = false, features = ["napi9"] }
-napi-derive = "3.6.10"
+napi = { version = "3.14.2", default-features = false, features = ["napi9"] }
+napi-derive = "3.6.12"
 yuvutils-rs = { version = "0.8.3" }
 fast_image_resize = { version = "6.1.0", features = ["rayon"] }
 image = "0.25.10"
