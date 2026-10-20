@@ -243,7 +243,6 @@ pub fn resize_image(
     None
   };
 
-  // If no resize needed, return original
   if resize_width_opt.is_none() || resize_height_opt.is_none() {
     return Ok(frame);
   }
@@ -296,7 +295,6 @@ pub fn crop_image(
     None
   };
 
-  // If no crop needed, return original
   if crop_left_opt.is_none()
     && crop_top_opt.is_none()
     && crop_width_opt.is_none()
@@ -372,7 +370,6 @@ pub fn resize_and_crop(
     || crop_height_opt.is_some();
   let has_resize = resize_width_opt.is_some() && resize_height_opt.is_some();
 
-  // If no operations needed, return original
   if !has_crop && !has_resize {
     return Ok(input_frame);
   }
@@ -407,8 +404,6 @@ pub fn process_image(
   resize_width: u32,
   resize_height: u32,
 ) -> Result<Uint8Array> {
-  // Input formats: 1 = YUV420P (I420), 12 = NV12
-  // Output formats: 1 = GRAY, 3 = RGB, 4 = RGBA
   if output_format != 1 && output_format != 3 && output_format != 4 {
     return Err(Error::from_reason(
       "Invalid output format. Must be GRAY=1, RGB=3, or RGBA=4.",
@@ -426,13 +421,11 @@ pub fn process_image(
 
   let expected_size = match input_format {
     1 => {
-      // YUV420P
       let u_size = ((input_width / 2) * (input_height / 2)) as usize;
       let v_size = u_size;
       y_size + u_size + v_size
     }
     12 => {
-      // NV12
       let uv_size = (input_width * input_height / 2) as usize;
       y_size + uv_size
     }
@@ -445,7 +438,6 @@ pub fn process_image(
     ));
   }
 
-  // Convert crop/resize u32 to Option<u32>
   let crop_left_opt = if crop_left > 0 { Some(crop_left) } else { None };
   let crop_top_opt = if crop_top > 0 { Some(crop_top) } else { None };
   let crop_width_opt = if crop_width > 0 {
@@ -469,56 +461,46 @@ pub fn process_image(
     None
   };
 
-  // Convert based on input and output format
-  // For grayscale, we can avoid allocation and just reference the Y plane
-  // For RGB/RGBA, we need to allocate
+  // gray borrows the Y plane, rgb and rgba need their own buffer
   let grayscale_buffer: &[u8];
   let rgb_buffer: Vec<u8>;
 
   let current_image: &[u8] = match (input_format, output_format) {
     (1, 1) => {
-      // YUV420P -> GRAY (zero-copy: just extract Y plane)
       grayscale_buffer =
         _internal_convert_yuv_to_grayscale_internal(input_data, input_width, input_height);
       grayscale_buffer
     }
     (12, 1) => {
-      // NV12 -> GRAY (zero-copy: just extract Y plane)
       grayscale_buffer =
         _internal_convert_nv12_to_grayscale_internal(input_data, input_width, input_height);
       grayscale_buffer
     }
     (1, 3) => {
-      // YUV420P -> RGB
       rgb_buffer = _internal_convert_yuv_to_rgb_internal(input_data, input_width, input_height)?;
       &rgb_buffer
     }
     (1, 4) => {
-      // YUV420P -> RGBA
       rgb_buffer = _internal_convert_yuv_to_rgba_internal(input_data, input_width, input_height)?;
       &rgb_buffer
     }
     (12, 3) => {
-      // NV12 -> RGB
       rgb_buffer = _internal_convert_nv12_to_rgb_internal(input_data, input_width, input_height)?;
       &rgb_buffer
     }
     (12, 4) => {
-      // NV12 -> RGBA
       rgb_buffer = _internal_convert_nv12_to_rgba_internal(input_data, input_width, input_height)?;
       &rgb_buffer
     }
     _ => return Err(Error::from_reason("Unsupported format combination.")),
   };
 
-  // Apply crop/resize if needed
   let has_crop = crop_left_opt.is_some()
     || crop_top_opt.is_some()
     || crop_width_opt.is_some()
     || crop_height_opt.is_some();
   let has_resize = resize_width_opt.is_some() && resize_height_opt.is_some();
 
-  // If no operations needed, return current_image directly
   if !has_crop && !has_resize {
     return Ok(Uint8Array::from(current_image));
   }
@@ -562,7 +544,6 @@ pub fn process_image_debug(
   output_dir: String,
   prefix: String,
 ) -> Result<Uint8Array> {
-  // First process the image normally
   let result = process_image(
     input_frame,
     input_width,
@@ -577,7 +558,6 @@ pub fn process_image_debug(
     resize_height,
   )?;
 
-  // Determine output dimensions
   let (out_width, out_height) = if resize_width > 0 && resize_height > 0 {
     (resize_width, resize_height)
   } else if crop_width > 0 && crop_height > 0 {
@@ -586,11 +566,9 @@ pub fn process_image_debug(
     (input_width, input_height)
   };
 
-  // Save the result based on output format
   let result_data = result.as_ref();
   match output_format {
     1 => {
-      // GRAY - save as grayscale PNG
       save_grayscale_image(
         result_data,
         out_width,
@@ -600,7 +578,6 @@ pub fn process_image_debug(
       )?;
     }
     3 => {
-      // RGB - save as RGB PNG
       save_rgb_image(
         result_data,
         out_width,
@@ -610,7 +587,6 @@ pub fn process_image_debug(
       )?;
     }
     4 => {
-      // RGBA - save as RGBA PNG
       save_rgba_image(
         result_data,
         out_width,
@@ -624,8 +600,6 @@ pub fn process_image_debug(
 
   Ok(result)
 }
-
-// Internal
 
 #[inline(always)]
 fn _internal_convert_yuv_to_rgb_internal(
@@ -841,7 +815,6 @@ fn _internal_apply_crop_resize(
   let src_image = ImageRef::new(src_width, src_height, src_buffer, pixel_type)
     .map_err(|e| Error::from_reason(format!("Failed to create source image: {}", e)))?;
 
-  // Calculate final dimensions
   let (final_width, final_height) = if let (Some(w), Some(h)) = (resize_width, resize_height) {
     (w, h)
   } else {
@@ -854,7 +827,6 @@ fn _internal_apply_crop_resize(
   let mut dst_image = Image::new(final_width, final_height, pixel_type);
   let mut resizer = Resizer::new();
 
-  // Build resize options
   let has_crop =
     crop_left.is_some() || crop_top.is_some() || crop_width.is_some() || crop_height.is_some();
   let has_resize = resize_width.is_some() && resize_height.is_some();
@@ -886,8 +858,6 @@ fn _internal_apply_crop_resize(
 
   Ok(dst_image.into_vec())
 }
-
-// Debugging
 
 fn save_grayscale_image(
   data: &[u8],
