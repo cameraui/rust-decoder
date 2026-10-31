@@ -34,7 +34,7 @@
     "prepublishOnly": "napi prepublish --no-gh-release",
     "release": "bash scripts/release.sh",
     "universal": "napi universalize",
-    "update": "updates -M npm,pypi,go,cargo,docker,make --update ./",
+    "update": "updates -M npm,pypi,go,cargo,docker --update ./",
     "version": "napi version"
   },
   "devDependencies": {
