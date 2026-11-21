@@ -60,7 +60,14 @@
   "keywords": [
     "camera-ui",
     "decoder",
-    "rust"
+    "rust",
+    "camera.ui",
+    "napi-rs",
+    "nv12",
+    "yuv",
+    "resize",
+    "crop",
+    "image-processing"
   ],
   "license": "MIT",
   "repository": {
